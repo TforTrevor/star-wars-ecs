@@ -6,10 +6,8 @@ using Unity.Entities;
 namespace SWE
 {
     [GenerateAuthoringComponent]
-    public struct PrefabSpawnerComponent : IComponentData
+    public struct TargetTag : IComponentData
     {
-        public Entity prefab;
-        public int spawnCount;
-        public float spawnRadius;
+
     }
 }
