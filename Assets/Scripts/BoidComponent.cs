@@ -11,7 +11,6 @@ namespace SWE
     {
         [Header("Runtime")]
         public float3 velocity;
-        public uint cellHash;
         public float3 target;
         public bool hasTarget;
         //public float3 avgFlockHeading;

@@ -14,13 +14,13 @@ namespace SWE
             commandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
         }
 
-        protected override void OnStartRunning()
+        protected override void OnUpdate()
         {
             var commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             Random random = new Random((uint)UnityEngine.Random.Range(0, int.MaxValue));
 
-            Entities.ForEach((Entity entity, int entityInQueryIndex, ref PrefabSpawnerComponent spawner, in Translation translation) =>
+            Entities.ForEach((Entity entity, int entityInQueryIndex, in PrefabSpawnerComponent spawner, in Translation translation) =>
             {
                 int rowLength = (int)math.floor(math.sqrt(spawner.spawnCount));
                 for (int i = 0; i < spawner.spawnCount; i++)
@@ -37,16 +37,13 @@ namespace SWE
                         Value = new float3(random.NextFloat3(-spawner.spawnRadius, spawner.spawnRadius))
                     });
                 }
+
+                commandBuffer.DestroyEntity(entityInQueryIndex, entity);
             }).ScheduleParallel();
 
             commandBufferSystem.AddJobHandleForProducer(Dependency);
 
             Dependency.Complete();
-        }
-
-        protected override void OnUpdate()
-        {
-            
         }
     }
 }

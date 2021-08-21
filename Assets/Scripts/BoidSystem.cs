@@ -10,44 +10,23 @@ namespace SWE
 {
     public class BoidSystem : SystemBase
     {
-        //protected override void OnStartRunning()
-        //{
-        //    BoidSettingsComponent settings = GetSingleton<BoidSettingsComponent>();
-
-        //    EntityQuery targetQuery = GetEntityQuery(ComponentType.ReadOnly<TargetTag>(), ComponentType.ReadOnly<Translation>());
-        //    NativeArray<Translation> targetTranslations = targetQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
-
-        //    Random random = new Random((uint)UnityEngine.Random.Range(0, int.MaxValue));
-
-        //    Entities.ForEach((ref BoidComponent boid, in Rotation rotation) =>
-        //    {
-        //        float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2;
-        //        boid.velocity = math.forward(rotation.Value) * startSpeed;
-        //        boid.target = targetTranslations[random.NextInt(0, targetTranslations.Length)].Value;
-        //    })
-        //    .WithReadOnly(targetTranslations)
-        //    .WithoutBurst()
-        //    .ScheduleParallel();
-
-        //    Dependency.Complete();
-
-        //    targetTranslations.Dispose();
-        //}
-
         protected override void OnUpdate()
         {
             BoidSettingsComponent settings = GetSingleton<BoidSettingsComponent>();
+            //settings.cellRadius = settings.perceptionRadius / 2;
+            SetSingleton(settings);
+
             EntityQuery boidQuery = GetEntityQuery(ComponentType.ReadOnly<Translation>(), ComponentType.ReadOnly<Rotation>(), ComponentType.ReadOnly<BoidComponent>());
 
             NativeMultiHashMap<uint, int> cellHashMap = new NativeMultiHashMap<uint, int>(boidQuery.CalculateEntityCount(), Allocator.TempJob);
 
             var parallelHashMap = cellHashMap.AsParallelWriter();
-            Entities.ForEach((int entityInQueryIndex, ref BoidComponent boid, in Translation translation) =>
+            Entities.ForEach((int entityInQueryIndex, in Translation translation) =>
             {
                 uint hash = math.hash(new int3(math.floor(translation.Value / settings.cellRadius)));
                 parallelHashMap.Add(hash, entityInQueryIndex);
-                boid.cellHash = hash;
             })
+            .WithAll<BoidComponent, Rotation>()
             .ScheduleParallel();
 
             Dependency.Complete();
